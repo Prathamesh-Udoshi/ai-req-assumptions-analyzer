@@ -1,0 +1,108 @@
+{
+  "description": "Human-calibrated dataset for tuning scoring weights. Each example has human judgment of clarity level.",
+  "calibration_examples": [
+    {
+      "text": "User logs in with valid credentials",
+      "human_judgment": "CLEAR",
+      "expected_readiness": 90,
+      "notes": "Clear, specific, testable requirement"
+    },
+    {
+      "text": "System should load fast",
+      "human_judgment": "SOMEWHAT UNCLEAR",
+      "expected_readiness": 60,
+      "notes": "Subjective term 'fast' without metrics"
+    },
+    {
+      "text": "The system should work correctly",
+      "human_judgment": "VERY UNCLEAR",
+      "expected_readiness": 20,
+      "notes": "Vague, non-testable, no specific criteria"
+    },
+    {
+      "text": "User clicks submit button and sees confirmation message",
+      "human_judgment": "CLEAR",
+      "expected_readiness": 95,
+      "notes": "Specific UI interaction with clear expected result"
+    },
+    {
+      "text": "Application should be user-friendly",
+      "human_judgment": "VERY UNCLEAR",
+      "expected_readiness": 30,
+      "notes": "Highly subjective, no measurable criteria"
+    },
+    {
+      "text": "API returns 200 status code for valid request",
+      "human_judgment": "CLEAR",
+      "expected_readiness": 95,
+      "notes": "Specific, measurable, testable"
+    },
+    {
+      "text": "System might handle errors gracefully if possible",
+      "human_judgment": "SOMEWHAT UNCLEAR",
+      "expected_readiness": 50,
+      "notes": "Weak modality and vague error handling"
+    },
+    {
+      "text": "Database should be scalable",
+      "human_judgment": "SOMEWHAT UNCLEAR",
+      "expected_readiness": 55,
+      "notes": "Scalability is subjective without specific metrics"
+    },
+    {
+      "text": "User authentication works properly",
+      "human_judgment": "SOMEWHAT UNCLEAR",
+      "expected_readiness": 45,
+      "notes": "'Properly' is vague, but authentication is a clear domain"
+    },
+    {
+      "text": "Page loads in under 2 seconds on 3G connection",
+      "human_judgment": "CLEAR",
+      "expected_readiness": 90,
+      "notes": "Specific metrics and conditions make it testable"
+    },
+    {
+      "text": "The component should be robust",
+      "human_judgment": "VERY UNCLEAR",
+      "expected_readiness": 25,
+      "notes": "Robustness is highly subjective"
+    },
+    {
+      "text": "When user enters invalid email, show error message",
+      "human_judgment": "CLEAR",
+      "expected_readiness": 85,
+      "notes": "Clear condition and expected behavior"
+    },
+    {
+      "text": "System should respond quickly",
+      "human_judgment": "SOMEWHAT UNCLEAR",
+      "expected_readiness": 65,
+      "notes": "'Quickly' is subjective but context helps"
+    },
+    {
+      "text": "Data validation prevents SQL injection",
+      "human_judgment": "CLEAR",
+      "expected_readiness": 90,
+      "notes": "Security requirement is specific and testable"
+    },
+    {
+      "text": "The interface should be intuitive",
+      "human_judgment": "VERY UNCLEAR",
+      "expected_readiness": 35,
+      "notes": "Intuitive is highly subjective"
+    }
+  ],
+  "scoring_weights_calibration": {
+    "CLEAR_threshold": 80,
+    "SOMEWHAT_UNCLEAR_threshold": 40,
+    "VERY_UNCLEAR_threshold": 20,
+    "component_weights": {
+      "ambiguity_lexical_weight": 0.3,
+      "ambiguity_testability_weight": 0.5,
+      "ambiguity_references_weight": 0.2,
+      "assumption_environment_weight": 0.35,
+      "assumption_data_weight": 0.25,
+      "assumption_state_weight": 0.4
+    }
+  }
+}

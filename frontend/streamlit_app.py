@@ -1,7 +1,7 @@
 """
-Streamlit Frontend for AI Requirements Quality Analyzer
+Streamlit Frontend for Intelligent Test Case Quality Analyzer
 
-A simple, interactive web interface for analyzing requirement ambiguity and assumptions.
+An interactive web interface for analyzing test case quality and assumptions.
 Built with Streamlit for rapid prototyping and easy deployment.
 """
 
@@ -37,24 +37,14 @@ class RequirementsAnalyzer:
     def analyze_text(self, text: str) -> Dict[str, Any]:
         """Analyze a single requirement text."""
         try:
-            # Debug: Show what we're sending
-            st.write(f"Debug: Sending request to {self.api_url}/analyze")
-            st.write(f"Debug: Request data: {{'text': '{text[:50]}...'}}")
-
             response = requests.post(
                 f"{self.api_url}/analyze",
                 json={"text": text},
                 timeout=30
             )
 
-            st.write(f"Debug: Response status: {response.status_code}")
-
             response.raise_for_status()
             result = response.json()
-
-            st.write(f"Debug: Response received: {type(result)}")
-            if isinstance(result, dict):
-                st.write(f"Debug: Response keys: {list(result.keys())}")
 
             return result
 
@@ -111,13 +101,13 @@ def main():
 
     # Page configuration
     st.set_page_config(
-        page_title="AI Requirements Analyzer",
+        page_title="Intelligent Test Case Analyzer",
         page_icon="🔍",
         layout="wide",
         initial_sidebar_state="expanded"
     )
 
-    # Custom CSS for better styling
+    # Custom CSS for better styling and new UI elements
     st.markdown("""
     <style>
     .main-header {
@@ -127,11 +117,46 @@ def main():
         text-align: center;
         margin-bottom: 2rem;
     }
-    .metric-card {
-        background-color: #f0f2f6;
+    .risk-summary {
+        font-size: 1.2rem;
+        font-weight: 500;
         padding: 1rem;
         border-radius: 0.5rem;
-        border-left: 4px solid #1f77b4;
+        margin-bottom: 1rem;
+    }
+    .confidence-indicator {
+        background-color: #f8f9fa;
+        padding: 0.75rem;
+        border-radius: 0.5rem;
+        border-left: 4px solid #6c757d;
+        margin-bottom: 1rem;
+    }
+    .component-breakdown {
+        background-color: #f8f9fa;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        margin-bottom: 1rem;
+    }
+    .critical-assumptions {
+        background-color: #f8d7da;
+        border: 1px solid #f5c6cb;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        margin-bottom: 1rem;
+    }
+    .minor-assumptions {
+        background-color: #fff3cd;
+        border: 1px solid #ffeaa7;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        margin-bottom: 1rem;
+    }
+    .clarifying-questions {
+        background-color: #d1ecf1;
+        border: 1px solid #bee5eb;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        margin-bottom: 1rem;
     }
     .ready-badge {
         background-color: #28a745;
@@ -140,6 +165,7 @@ def main():
         border-radius: 1rem;
         font-size: 0.8rem;
         font-weight: bold;
+        display: inline-block;
     }
     .needs-clarification-badge {
         background-color: #ffc107;
@@ -148,6 +174,7 @@ def main():
         border-radius: 1rem;
         font-size: 0.8rem;
         font-weight: bold;
+        display: inline-block;
     }
     .high-risk-badge {
         background-color: #dc3545;
@@ -156,13 +183,21 @@ def main():
         border-radius: 1rem;
         font-size: 0.8rem;
         font-weight: bold;
+        display: inline-block;
+    }
+    .impact-issue {
+        background-color: #fff;
+        border: 1px solid #dee2e6;
+        padding: 0.75rem;
+        border-radius: 0.5rem;
+        margin-bottom: 0.5rem;
     }
     </style>
     """, unsafe_allow_html=True)
 
     # Header
-    st.markdown('<div class="main-header">🔍 AI Requirements Analyzer</div>', unsafe_allow_html=True)
-    st.markdown("**Detect ambiguity and hidden assumptions in your requirements before test automation**")
+    st.markdown('<div class="main-header">🎯 Intelligent Test Case Quality Analyzer</div>', unsafe_allow_html=True)
+    st.markdown("**Trustworthy analysis of test case quality - ensure automation-ready test cases**")
 
     # Initialize analyzer
     analyzer = RequirementsAnalyzer()
@@ -183,7 +218,7 @@ def main():
         # Navigation
         page = st.radio(
             "Choose Analysis Mode:",
-            ["Single Analysis", "Batch Analysis", "Dashboard"],
+            ["Single Test Analysis", "Batch Test Analysis", "Quality Dashboard"],
             index=0
         )
 
@@ -197,18 +232,18 @@ def main():
                     st.rerun()
 
     # Main content based on selected page
-    if page == "Single Analysis":
+    if page == "Single Test Analysis":
         show_single_analysis(analyzer)
-    elif page == "Batch Analysis":
+    elif page == "Batch Test Analysis":
         show_batch_analysis(analyzer)
-    else:  # Dashboard
+    else:  # Quality Dashboard
         show_dashboard(analyzer)
 
 
 def show_single_analysis(analyzer: RequirementsAnalyzer):
-    """Single requirement analysis page."""
+    """Single test case analysis page."""
 
-    st.header("📄 Single Requirement Analysis")
+    st.header("📄 Single Test Case Analysis")
 
     # Initialize session state for text input
     if 'requirement_text' not in st.session_state:
@@ -220,10 +255,10 @@ def show_single_analysis(analyzer: RequirementsAnalyzer):
     with col1:
         # Text input
         requirement_text = st.text_area(
-            "Enter your requirement or test case:",
+            "Enter your test case or requirement:",
             value=st.session_state.requirement_text,
             height=100,
-            placeholder="Example: The system should load fast and handle errors properly",
+            placeholder="Example: User logs in with valid credentials and accesses dashboard",
             key="main_text_area"
         )
 
@@ -238,42 +273,38 @@ def show_single_analysis(analyzer: RequirementsAnalyzer):
                 st.session_state.requirement_text = example
                 st.rerun()
 
-    # Debug info (remove in production)
-    if st.checkbox("Show debug info", key="debug_checkbox"):
-        st.write(f"Current text: '{requirement_text}'")
-        st.write(f"Text length: {len(requirement_text.strip())}")
-        st.write(f"API Status: {analyzer.health_check()}")
+    # Input validation
+    text_length = len(requirement_text.strip())
+    if text_length > 0 and text_length < 10:
+        st.warning("⚠️ Very short text detected. Analysis confidence may be lower.")
+    elif text_length > 500:
+        st.info("📝 Long text detected. Consider breaking into smaller, focused test cases.")
 
     # Analysis button
-    if st.button("🔍 Analyze", type="primary", use_container_width=True):
+    if st.button("🎯 Analyze Test Quality", type="primary", use_container_width=True):
         text_to_analyze = requirement_text.strip()
-
-        # Debug logging
-        st.write(f"Debug: Analyzing text: '{text_to_analyze[:50]}...'")
-        st.write(f"Debug: Text length: {len(text_to_analyze)}")
 
         if not text_to_analyze:
             st.error("Please enter some text to analyze.")
-            st.error("Debug: Text appears to be empty after stripping.")
             return
 
-        with st.spinner("Analyzing requirement..."):
+        with st.spinner("🔍 Analyzing test case quality..."):
             result = analyzer.analyze_text(text_to_analyze)
 
         if result:
-            st.success("Analysis completed successfully!")
+            st.success("✅ Test quality analysis completed!")
             display_analysis_result(text_to_analyze, result)
         else:
-            st.error("Analysis failed. Please check the API connection and try again.")
-            st.info("Make sure the FastAPI server is running on http://localhost:8000")
+            st.error("❌ Analysis failed. Please check the API connection and try again.")
+            st.info("💡 Make sure the FastAPI server is running on http://localhost:8000")
 
 
 def show_batch_analysis(analyzer: RequirementsAnalyzer):
-    """Batch analysis page."""
+    """Batch test analysis page."""
 
-    st.header("📊 Batch Analysis")
+    st.header("📊 Batch Test Analysis")
 
-    st.markdown("Analyze multiple requirements at once for efficient quality assessment.")
+    st.markdown("Analyze multiple test cases at once for efficient quality assessment and automation planning.")
 
     # Input method
     input_method = st.radio(
@@ -330,7 +361,7 @@ def show_batch_analysis(analyzer: RequirementsAnalyzer):
                 st.write(f"{i}. {req}")
 
     # Analyze button
-    if st.button("🔍 Analyze Batch", type="primary", use_container_width=True):
+    if st.button("🔍 Analyze Test Batch", type="primary", use_container_width=True):
         if not requirements:
             st.error("No requirements to analyze.")
             return
@@ -343,9 +374,9 @@ def show_batch_analysis(analyzer: RequirementsAnalyzer):
 
 
 def show_dashboard(analyzer: RequirementsAnalyzer):
-    """Dashboard with analytics and insights."""
+    """Dashboard with test quality analytics and insights."""
 
-    st.header("📈 Quality Dashboard")
+    st.header("📈 Test Quality Dashboard")
 
     st.markdown("Analyze trends and quality metrics across your requirements.")
 
@@ -366,78 +397,328 @@ def show_dashboard(analyzer: RequirementsAnalyzer):
 
 
 def display_analysis_result(text: str, result: Dict[str, Any]):
-    """Display detailed analysis result."""
+    """Display analysis result with explanation-first UI design."""
 
-    # Overview metrics
-    col1, col2, col3, col4 = st.columns(4)
+    # 1. RISK SUMMARY FIRST - Most important message upfront
+    st.markdown("### 🎯 Analysis Summary")
+    st.caption("*Intelligent analysis of test automation readiness and quality risks*")
+
+    readiness_score = round(result['readiness_score'])
+    readiness_level = result['readiness_level']
+
+    # Generate human-readable risk summary
+    risk_message, risk_color = _get_risk_summary(readiness_score, readiness_level, result)
+
+    # Display risk summary prominently
+    if risk_color == "green":
+        st.success(f"✅ {risk_message}")
+    elif risk_color == "yellow":
+        st.warning(f"⚠️ {risk_message}")
+    else:
+        st.error(f"🚨 {risk_message}")
+
+    # 2. CONFIDENCE INDICATOR - Right after risk summary
+    _display_confidence_indicator(result)
+
+    # 3. MULTI-SIGNAL SCORE VISUALIZATION
+    st.markdown("### 📊 Detailed Quality Analysis")
+    st.caption("*Breakdown of different quality aspects for comprehensive assessment*")
+
+    # Ambiguity components
+    if 'ambiguity' in result and 'components' in result['ambiguity']:
+        _display_ambiguity_breakdown(result['ambiguity'])
+
+    # Assumption components
+    if 'assumptions' in result and 'components' in result['assumptions']:
+        _display_assumption_breakdown(result['assumptions'])
+
+    # Overall readiness score (secondary, not primary)
+    col1, col2 = st.columns([3, 1])
+    with col1:
+        st.markdown(f"**Overall Readiness:** {readiness_score}/100")
+        with st.expander("ℹ️ What does this mean?", expanded=False):
+            st.markdown("""
+            **Readiness Score** combines test quality analysis for automation planning:
+            - **85+**: Well-prepared for test automation
+            - **60-84**: Needs some clarification but generally automatable
+            - **<60**: Significant issues need to be addressed before automation
+
+            This score helps prioritize test cases for automation implementation.
+            """)
+    with col2:
+        _display_readiness_badge(readiness_level)
+
+    # 4. ISSUES WITH IMPACT FOCUS
+    if result.get('issues'):
+        st.markdown("### ⚠️ Quality Issues Found")
+        st.caption("*Specific problems that could affect test automation success*")
+        _display_impact_issues(result['issues'])
+
+    # 5. CLARIFYING QUESTIONS AS PRIMARY CTA
+    if result.get('clarifying_questions'):
+        _display_clarifying_questions(result['clarifying_questions'])
+
+    # 6. Original text (collapsed by default)
+    with st.expander("📝 Original Test Case", expanded=False):
+        st.write(text)
+
+
+def _get_risk_summary(readiness_score: int, readiness_level: str, result: Dict) -> tuple[str, str]:
+    """Generate human-readable risk summary based on analysis results."""
+
+    if readiness_level == "Ready":
+        if readiness_score >= 90:
+            return "This test case looks solid for automation - low risk of flaky execution.", "green"
+        else:
+            return "This test case should work for automation, but consider the suggestions below.", "green"
+
+    elif readiness_level == "Needs clarification":
+        issue_count = len(result.get('issues', []))
+        if issue_count > 3:
+            return f"This test case needs clarification before automation ({issue_count} issues found).", "yellow"
+        else:
+            return "This test case could work but would benefit from clarification.", "yellow"
+
+    else:  # High risk
+        issue_count = len(result.get('issues', []))
+        strong_assumptions = 0
+        if 'assumptions' in result and 'components' in result['assumptions']:
+            for component in result['assumptions']['components'].values():
+                if isinstance(component, dict) and component.get('strength') == 'STRONG':
+                    strong_assumptions += component.get('count', 0)
+
+        if strong_assumptions > 0:
+            return f"High risk for automation - {strong_assumptions} critical assumptions will cause test failures.", "red"
+        else:
+            return "High risk for automation - significant clarification needed to prevent flaky tests.", "red"
+
+
+def _display_confidence_indicator(result: Dict[str, Any]):
+    """Display confidence indicator with explanation."""
+
+    confidence = "MEDIUM"  # Default fallback
+    confidence_explanation = ""
+
+    # Extract confidence from ambiguity analysis
+    if 'ambiguity' in result and 'confidence' in result['ambiguity']:
+        confidence = result['ambiguity']['confidence']
+
+    # Generate explanation
+    if confidence == "HIGH":
+        confidence_explanation = "Analysis is based on clear signals and sufficient context"
+        icon = "🟢"
+        color = "green"
+    elif confidence == "MEDIUM":
+        confidence_explanation = "Analysis has moderate confidence - results should be reviewed"
+        icon = "🟡"
+        color = "orange"
+    else:  # LOW
+        confidence_explanation = "Analysis has low confidence - requirement is very short or lacks context"
+        icon = "🔴"
+        color = "red"
+
+    st.markdown(f"**Analysis Confidence:** {icon} {confidence}")
+    st.caption(confidence_explanation)
+    st.markdown("---")
+
+
+def _display_ambiguity_breakdown(ambiguity_data: Dict[str, Any]):
+    """Display multi-signal ambiguity breakdown with explanations."""
+
+    st.markdown("**Ambiguity Analysis**")
+    st.caption("*How clear and specific is the language used?*")
+
+    components = ambiguity_data.get('components', {})
+
+    # Create progress bars for each component
+    col1, col2, col3 = st.columns(3)
 
     with col1:
-        st.metric("Ambiguity Score", f"{result['ambiguity_score']:.1f}")
+        lexical_score = components.get('lexical', 0)
+        st.progress(lexical_score / 100)
+        st.caption(f"**Lexical Issues:** {lexical_score}/100")
+        with st.expander("ℹ️ What is this?", expanded=False):
+            st.markdown("""
+            **Lexical Issues** detect subjective or vague terms in test cases that can cause inconsistent execution:
+            - Words like "fast", "user-friendly", "secure", "optimal"
+            - Terms without measurable criteria or specific definitions
+            - Subjective quality descriptors that lack concrete test assertions
+            """)
 
     with col2:
-        st.metric("Assumption Score", f"{result['assumption_score']:.1f}")
+        testability_score = components.get('testability', 0)
+        st.progress(testability_score / 100)
+        st.caption(f"**Testability Gaps:** {testability_score}/100")
+        with st.expander("ℹ️ What is this?", expanded=False):
+            st.markdown("""
+            **Testability Gaps** identify test case steps that cannot be objectively verified:
+            - Phrases like "works correctly", "handles properly", "performs well"
+            - Test steps without specific acceptance criteria
+            - Vague success conditions that can't be automated
+            """)
 
     with col3:
-        st.metric("Readiness Score", f"{result['readiness_score']:.1f}")
+        references_score = components.get('references', 0)
+        st.progress(references_score / 100)
+        st.caption(f"**Reference Issues:** {references_score}/100")
+        with st.expander("ℹ️ What is this?", expanded=False):
+            st.markdown("""
+            **Reference Issues** find pronouns and references in test cases without clear antecedents:
+            - Words like "it", "this", "that", "these", "those"
+            - Unspecified UI elements, data fields, or system components
+            - References that could point to multiple test objects
+            """)
 
-    with col4:
-        readiness_class = result['readiness_level']
-        if readiness_class == "Ready":
-            st.markdown(f'<div class="ready-badge">{readiness_class}</div>', unsafe_allow_html=True)
-        elif readiness_class == "Needs clarification":
-            st.markdown(f'<div class="needs-clarification-badge">{readiness_class}</div>', unsafe_allow_html=True)
-        else:
-            st.markdown(f'<div class="high-risk-badge">{readiness_class}</div>', unsafe_allow_html=True)
 
-    # Visual representation
-    st.markdown("### 📊 Score Visualization")
-    fig = go.Figure()
+def _display_assumption_breakdown(assumptions_data: Dict[str, Any]):
+    """Display multi-signal assumption breakdown with strength grouping and explanations."""
 
-    fig.add_trace(go.Bar(
-        x=['Ambiguity', 'Assumptions', 'Readiness'],
-        y=[result['ambiguity_score'], result['assumption_score'], result['readiness_score']],
-        marker_color=['#ff6b6b', '#4ecdc4', '#45b7d1']
-    ))
+    st.markdown("**Assumption Analysis**")
+    st.caption("*What preconditions or dependencies are implied?*")
 
-    fig.update_layout(
-        title="Quality Scores",
-        yaxis_title="Score (0-100)",
-        yaxis_range=[0, 100],
-        height=300
-    )
+    components = assumptions_data.get('components', {})
 
-    st.plotly_chart(fig, use_container_width=True)
+    # Group by strength
+    strong_assumptions = []
+    weak_assumptions = []
 
-    # Issues breakdown
-    if result['issues']:
-        st.markdown("### ⚠️ Detected Issues")
+    for component_name, component_data in components.items():
+        if isinstance(component_data, dict):
+            count = component_data.get('count', 0)
+            strength = component_data.get('strength', 'UNKNOWN')
 
-        # Group issues by type
-        issue_types = {}
-        for issue in result['issues']:
-            issue_type = issue.get('type', 'Unknown')
-            if issue_type not in issue_types:
-                issue_types[issue_type] = []
-            issue_types[issue_type].append(issue)
+            if count > 0:
+                if strength == 'STRONG':
+                    strong_assumptions.append((component_name, count))
+                elif strength == 'WEAK':
+                    weak_assumptions.append((component_name, count))
 
-        for issue_type, issues in issue_types.items():
-            with st.expander(f"{issue_type} ({len(issues)})", expanded=True):
-                for issue in issues:
-                    st.markdown(f"**Text:** {issue.get('text', 'N/A')}")
-                    st.markdown(f"**Message:** {issue.get('message', 'N/A')}")
-                    if 'assumption' in issue:
-                        st.markdown(f"**Assumption:** {issue['assumption']}")
-                    st.markdown("---")
+    # Display strong assumptions first (most critical)
+    if strong_assumptions:
+        st.markdown("🚨 **Critical Assumptions** *(will break automation if missing)*")
+        for component_name, count in strong_assumptions:
+            component_display = component_name.replace('_', ' ').title()
+            st.error(f"• **{component_display}**: {count} hidden dependencies")
 
-    # Suggestions
-    if result['suggestions']:
-        st.markdown("### 💡 Clarification Questions")
-        for i, suggestion in enumerate(result['suggestions'], 1):
-            st.markdown(f"{i}. {suggestion}")
+            # Add explanation for each component type
+            with st.expander(f"ℹ️ About {component_display} assumptions", expanded=False):
+                if component_name == 'environment':
+                    st.markdown("""
+                    **Environment Assumptions** require specific test environment setup:
+                    - Browser or device compatibility for test execution
+                    - Operating system requirements for test runners
+                    - Network or connectivity needs for test data
+                    - Database or external service availability for test scenarios
+                    """)
+                elif component_name == 'data':
+                    st.markdown("""
+                    **Data Assumptions** require test data to be prepared for execution:
+                    - User accounts or credentials for authentication tests
+                    - Sample data or content for validation scenarios
+                    - Database state or records for data-driven tests
+                    - File uploads or attachments for file handling tests
+                    """)
+                elif component_name == 'state':
+                    st.markdown("""
+                    **State Assumptions** require system to be in specific condition for test execution:
+                    - User authentication status for access tests
+                    - Application configuration for feature tests
+                    - Permission or access levels for authorization tests
+                    - Previous actions or setup steps for workflow tests
+                    """)
+        st.markdown("")
 
-    # Original text
-    with st.expander("📝 Original Text"):
-        st.write(text)
+    # Display weak assumptions
+    if weak_assumptions:
+        st.markdown("⚠️ **Minor Assumptions** *(may cause issues but less critical)*")
+        for component_name, count in weak_assumptions:
+            component_display = component_name.replace('_', ' ').title()
+            st.warning(f"• **{component_display}**: {count} contextual dependencies")
+
+            # Add explanation for each component type
+            with st.expander(f"ℹ️ About {component_display} assumptions", expanded=False):
+                if component_name == 'environment':
+                    st.markdown("""
+                    **Minor Environment Assumptions** are contextual preferences:
+                    - Preferred but not required browser versions
+                    - Optional display or resolution settings
+                    - Performance expectations without hard requirements
+                    """)
+                elif component_name == 'data':
+                    st.markdown("""
+                    **Minor Data Assumptions** are flexible requirements:
+                    - Optional data formats or content types
+                    - Sample data that's nice-to-have but not essential
+                    - Default values or placeholders
+                    """)
+                elif component_name == 'state':
+                    st.markdown("""
+                    **Minor State Assumptions** are implicit preferences:
+                    - Default user interface states
+                    - Optional notification or display preferences
+                    - Non-critical application configurations
+                    """)
+        st.markdown("")
+
+    # Show if no assumptions found
+    if not strong_assumptions and not weak_assumptions:
+        st.success("✅ No significant assumptions detected")
+        st.caption("*The requirement appears self-contained with explicit dependencies*")
+
+
+def _display_readiness_badge(readiness_level: str):
+    """Display readiness level badge."""
+    if readiness_level == "Ready":
+        st.markdown('<div class="ready-badge">Ready</div>', unsafe_allow_html=True)
+    elif readiness_level == "Needs clarification":
+        st.markdown('<div class="needs-clarification-badge">Needs Work</div>', unsafe_allow_html=True)
+    else:
+        st.markdown('<div class="high-risk-badge">High Risk</div>', unsafe_allow_html=True)
+
+
+def _display_impact_issues(issues: List[Dict[str, Any]]):
+    """Display issues with focus on impact and actionable information."""
+
+    st.markdown("### ⚠️ Issues Found")
+
+    # Group issues by type but focus on impact
+    for issue in issues:
+        issue_type = issue.get('type', 'Unknown')
+        message = issue.get('message', '')
+        impact = issue.get('impact', 'May cause testing issues')
+
+        # Create expandable issue with impact focus
+        with st.expander(f"**{issue_type}**: {message[:60]}{'...' if len(message) > 60 else ''}", expanded=False):
+            st.markdown(f"**Issue:** {message}")
+
+            if issue_type == "Assumption":
+                category = issue.get('category', '')
+                assumption = issue.get('assumption', '')
+                if category:
+                    st.markdown(f"**Category:** {category}")
+                if assumption:
+                    st.markdown(f"**Missing:** {assumption}")
+
+            st.markdown(f"**Impact:** {impact}")
+            st.markdown("---")
+
+
+def _display_clarifying_questions(questions: List[str]):
+    """Display clarifying questions as primary call-to-action."""
+
+    st.markdown("### 🎯 Recommended Clarifications")
+    st.caption("*Specific questions to ask stakeholders for better test automation*")
+
+    if len(questions) == 0:
+        st.success("✅ No clarification questions needed - requirement is clear!")
+        return
+
+    # Display as a checklist-style
+    st.markdown("**Consider asking these questions before automation:**")
+    for i, question in enumerate(questions, 1):
+        st.markdown(f"**{i}.** {question}")
+
+    st.info("💡 **Pro Tip:** Addressing these questions will make your automated tests more reliable and maintainable.")
 
 
 def display_batch_results(texts: List[str], results: List[Dict[str, Any]]):
@@ -455,8 +736,8 @@ def display_batch_results(texts: List[str], results: List[Dict[str, Any]]):
     # Summary metrics
     col1, col2, col3, col4 = st.columns(4)
 
-    avg_ambiguity = sum(r['ambiguity_score'] for r in valid_results) / len(valid_results)
-    avg_assumption = sum(r['assumption_score'] for r in valid_results) / len(valid_results)
+    avg_ambiguity = sum(r.get('ambiguity', {}).get('score', 0) for r in valid_results) / len(valid_results)
+    avg_assumption = sum(r.get('assumptions', {}).get('score', 0) for r in valid_results) / len(valid_results)
     avg_readiness = sum(r['readiness_score'] for r in valid_results) / len(valid_results)
 
     readiness_counts = {}
@@ -499,8 +780,8 @@ def display_batch_results(texts: List[str], results: List[Dict[str, Any]]):
             table_data.append({
                 'ID': i + 1,
                 'Text': text[:50] + '...' if len(text) > 50 else text,
-                'Ambiguity': f"{result.get('ambiguity_score', 0):.1f}",
-                'Assumptions': f"{result.get('assumption_score', 0):.1f}",
+                'Ambiguity': f"{result.get('ambiguity', {}).get('score', 0):.1f}",
+                'Assumptions': f"{result.get('assumptions', {}).get('score', 0):.1f}",
                 'Readiness': f"{result.get('readiness_score', 0):.1f}",
                 'Status': result.get('readiness_level', 'Error'),
                 'Issues': len(result.get('issues', []))
@@ -525,7 +806,7 @@ def display_batch_results(texts: List[str], results: List[Dict[str, Any]]):
         st.download_button(
             label="Download CSV",
             data=csv_data,
-            file_name="requirements_analysis_results.csv",
+            file_name="test_case_analysis_results.csv",
             mime="text/csv",
             key="download_csv"
         )
@@ -569,7 +850,7 @@ def display_dashboard_metrics(results: List[Dict[str, Any]]):
     col1, col2 = st.columns(2)
 
     with col1:
-        ambiguity_scores = [r['ambiguity_score'] for r in valid_results]
+        ambiguity_scores = [r.get('ambiguity', {}).get('score', 0) for r in valid_results]
         fig1 = px.histogram(
             ambiguity_scores,
             title="Ambiguity Score Distribution",

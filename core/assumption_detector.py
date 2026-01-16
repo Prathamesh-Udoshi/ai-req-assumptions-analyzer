@@ -12,7 +12,7 @@ Detects assumptions in three categories:
 """
 
 import re
-from typing import List, Dict, Any, Set
+from typing import List, Dict, Any, Set, Tuple
 from dataclasses import dataclass
 
 import spacy
@@ -27,6 +27,49 @@ class AssumptionIssue:
     text: str
     message: str
     assumption: str
+
+
+# Balanced assumption weights by category and severity
+ASSUMPTION_WEIGHTS = {
+    "Environment": {
+        "UI interaction": 14,  # Browser/device assumptions critical
+        "browsers": 12,
+        "devices": 12,
+        "operating_systems": 11,
+        "network": 10,
+        "display": 9,
+        "databases": 15,      # Database assumptions very critical
+        "apis": 12,
+        "cloud_providers": 11
+    },
+    "Data": {
+        "user_exists": 10,    # User data assumptions important
+        "credentials_exist": 11, # Authentication data critical
+        "form_filled": 8,
+        "data_entered": 9,
+        "record_exists": 9,
+        "data_exists": 8,
+        "file_exists": 9,
+        "recipient_exists": 8,
+        "sender_exists": 8,
+        "task_exists": 8,
+        "item_exists": 7,
+        "issue_exists": 8
+    },
+    "State": {
+        "user_logged_in": 13,    # Authentication state critical
+        "permissions_granted": 14, # Authorization state most critical
+        "condition_exists": 9,
+        "error_trigger": 10,
+        "failure_condition": 9,
+        "admin_role": 11,
+        "manager_role": 10,
+        "user_role": 10,
+        "account_active": 12,
+        "form_valid": 8,
+        "space_available": 8
+    }
+}
 
 
 class AssumptionDetector:
@@ -357,80 +400,226 @@ class AssumptionDetector:
         ]
         return any(indicator in text for indicator in data_indicators)
 
-    def calculate_assumption_score(self, issues: List[AssumptionIssue], text: str = "") -> float:
+    def calculate_assumption_score(self, issues: List[AssumptionIssue], text: str = "") -> Dict[str, Any]:
         """
-        Calculate assumption score based on detected issues.
+        Calculate multi-signal assumption score with component breakdown and strength classification.
 
-        Uses a sophisticated scoring algorithm that considers:
-        - Assumption category and severity
-        - Assumption density and criticality
-        - Text context and dependencies
-        - Multiple assumption types
+        Returns detailed scoring with three components:
+        - environment_assumptions_score: environment/data infrastructure assumptions
+        - data_assumptions_score: test data and user assumptions
+        - state_assumptions_score: system state and permissions assumptions
+
+        Each component includes count and strength classification (STRONG/WEAK).
 
         Args:
             issues: List of detected assumption issues
-            text: Original text (optional, for context analysis)
+            text: Original text for context analysis
 
         Returns:
-            Score from 0-100 (higher = more assumptions)
+            Dictionary with overall score and component details
         """
         if not issues:
-            return 0.0
+            return {
+                "score": 0.0,
+                "components": {
+                    "environment": {"count": 0, "strength": "NONE"},
+                    "data": {"count": 0, "strength": "NONE"},
+                    "state": {"count": 0, "strength": "NONE"}
+                }
+            }
 
-        # Base weights for different assumption categories
-        base_weights = {
-            "Environment": 18,  # Most critical - missing environment can break tests
-            "Data": 12,         # Important - missing data causes test failures
-            "State": 15,        # Critical - wrong state assumptions cause flaky tests
+        # Categorize issues by component
+        environment_issues = [issue for issue in issues if issue.category == "Environment"]
+        data_issues = [issue for issue in issues if issue.category == "Data"]
+        state_issues = [issue for issue in issues if issue.category == "State"]
+
+        # Calculate component scores and strengths
+        environment_score, environment_strength = self._calculate_component_with_strength(environment_issues, "Environment")
+        data_score, data_strength = self._calculate_component_with_strength(data_issues, "Data")
+        state_score, state_strength = self._calculate_component_with_strength(state_issues, "State")
+
+        # Overall score: weighted average (State most critical, then Environment, then Data)
+        overall_score = (environment_score * 0.35 + data_score * 0.25 + state_score * 0.4)
+
+        return {
+            "score": round(overall_score, 1),
+            "components": {
+                "environment": {
+                    "count": len(environment_issues),
+                    "strength": environment_strength
+                },
+                "data": {
+                    "count": len(data_issues),
+                    "strength": data_strength
+                },
+                "state": {
+                    "count": len(state_issues),
+                    "strength": state_strength
+                }
+            }
         }
 
-        # Count issues by category to handle multiples
-        category_counts = {}
-        assumption_types = set()
+    def _calculate_component_with_strength(self, component_issues: List[AssumptionIssue], component_type: str) -> Tuple[float, str]:
+        """Calculate score and strength for a specific assumption component."""
+        if not component_issues:
+            return 0.0, "NONE"
 
-        for issue in issues:
-            category = issue.category
-            category_counts[category] = category_counts.get(category, 0) + 1
-            assumption_types.add(issue.type)
-
-        # Calculate base score from categories
+        base_weights = ASSUMPTION_WEIGHTS
         base_score = 0
-        for category, count in category_counts.items():
-            weight = base_weights.get(category, 10)
-            # Multiple assumptions in same category are very problematic
-            if count == 1:
-                base_score += weight
-            elif count == 2:
-                base_score += weight * 1.6  # 60% bonus for second assumption
+        has_strong_assumption = False
+        has_weak_assumption = False
+
+        for issue in component_issues:
+            # Determine strength classification
+            strength = self._classify_assumption_strength(issue, component_type)
+            if strength == "STRONG":
+                has_strong_assumption = True
             else:
-                base_score += weight * 2.0  # 100% bonus for 3+ assumptions
+                has_weak_assumption = True
 
-        # Bonus for multiple assumption types (diverse hidden dependencies)
-        type_diversity_bonus = len(assumption_types) * 3
-        base_score += min(15, type_diversity_bonus)  # Cap at 15 points
+            # Get weight for this assumption type
+            if component_type in base_weights and isinstance(base_weights[component_type], dict):
+                weight = self._get_assumption_type_weight(issue, base_weights[component_type])
+            else:
+                weight = base_weights.get(component_type, 10)
+            base_score += weight
 
-        # Factor in text length and context
-        text_length = len(text.split()) if text else 50
+        # Multiple assumptions increase score
+        if len(component_issues) > 1:
+            base_score += (len(component_issues) - 1) * 5
 
-        # Short texts with assumptions are more concerning
-        if text_length < 15:
-            context_factor = 1.3  # Very short texts are critical
-        elif text_length < 30:
-            context_factor = 1.1  # Short texts still concerning
+        # Calculate density factor for this component
+        text_length = 50  # Will be passed from main method if needed
+        density_factor = len(component_issues) / max(text_length, 5)
+
+        # Component-specific density scoring
+        if component_type == "State":
+            density_score = min(30, density_factor * 60)  # State assumptions most critical
+        elif component_type == "Environment":
+            density_score = min(25, density_factor * 50)  # Environment assumptions critical
+        else:  # Data
+            density_score = min(20, density_factor * 40)  # Data assumptions less critical
+
+        raw_score = base_score + density_score
+
+        # Conservative normalization
+        if raw_score > 70:
+            final_score = 70 + (raw_score - 70) * 0.4
         else:
-            context_factor = 1.0  # Normal texts
+            final_score = raw_score
 
-        # Density factor: assumptions per word
-        density_factor = len(issues) / max(text_length, 8)  # At least 8 words
-        density_score = min(35, density_factor * 150)  # Cap density contribution
+        final_score = min(100.0, final_score)
 
-        # Calculate final score
-        final_score = (base_score * context_factor) + density_score
+        # Determine overall strength for component
+        if has_strong_assumption:
+            strength = "STRONG"
+        elif has_weak_assumption:
+            strength = "WEAK"
+        else:
+            strength = "UNKNOWN"
 
-        # Apply normalization curve
-        if final_score < 15:
-            final_score *= 0.9  # Slightly reduce very low scores
-        elif final_score > 75:
-            final_score = 75 + (final_score - 75) * 0.4  # Dampen very high scores
+        return final_score, strength
 
-        return max(0.0, min(100.0, final_score))
+    def _classify_assumption_strength(self, issue: AssumptionIssue, component_type: str) -> str:
+        """Classify an assumption as STRONG or WEAK based on its type and context."""
+        assumption_text = issue.assumption.lower()
+
+        # STRONG assumptions (very likely to break automation)
+        strong_patterns = {
+            "Environment": [
+                "browser", "device", "operating system", "database", "api", "network",
+                "server", "infrastructure", "platform", "environment"
+            ],
+            "State": [
+                "user logged in", "authenticated", "authorized", "permissions granted",
+                "admin role", "session active", "account active", "system configured"
+            ],
+            "Data": [
+                "user exists", "credentials exist", "test data prepared", "database populated",
+                "external service available", "api endpoint configured"
+            ]
+        }
+
+        # WEAK assumptions (contextual or optional)
+        weak_patterns = {
+            "Environment": [
+                "internet connection", "power available", "display resolution"
+            ],
+            "State": [
+                "user preferences set", "notifications enabled", "theme selected"
+            ],
+            "Data": [
+                "sample data", "demo content", "placeholder text", "optional fields"
+            ]
+        }
+
+        # Check for strong patterns first
+        if component_type in strong_patterns:
+            for pattern in strong_patterns[component_type]:
+                if pattern in assumption_text:
+                    return "STRONG"
+
+        # Check for weak patterns
+        if component_type in weak_patterns:
+            for pattern in weak_patterns[component_type]:
+                if pattern in assumption_text:
+                    return "WEAK"
+
+        # Default classification based on component type
+        if component_type == "Environment":
+            return "STRONG"  # Environment assumptions are usually critical
+        elif component_type == "State":
+            return "STRONG"  # State assumptions are usually critical
+        else:
+            return "WEAK"    # Data assumptions can be more flexible
+
+    def _get_assumption_type_weight(self, issue: AssumptionIssue, type_weights: dict) -> float:
+        """Get weight for specific assumption types."""
+        assumption_key = issue.assumption.lower()
+
+        # Direct mapping for common assumption types
+        key_mappings = {
+            "user exists": "user_exists",
+            "credentials exist": "credentials_exist",
+            "user logged in": "user_logged_in",
+            "permissions granted": "permissions_granted",
+            "form filled": "form_filled",
+            "data entered": "data_entered",
+            "record exists": "record_exists",
+            "data exists": "data_exists",
+            "condition exists": "condition_exists",
+            "file exists": "file_exists",
+            "recipient exists": "recipient_exists",
+            "sender exists": "sender_exists",
+            "task exists": "task_exists",
+            "item exists": "item_exists",
+            "issue exists": "issue_exists",
+            "error trigger": "error_trigger",
+            "failure condition": "failure_condition",
+            "admin role": "admin_role",
+            "manager role": "manager_role",
+            "user role": "user_role",
+            "account active": "account_active",
+            "form valid": "form_valid",
+            "space available": "space_available"
+        }
+
+        for phrase, key in key_mappings.items():
+            if phrase in assumption_key:
+                return type_weights.get(key, 15)  # Default to category average
+
+        # Check for environment indicators
+        if any(word in assumption_key for word in ['browser', 'chrome', 'firefox', 'safari', 'edge']):
+            return type_weights.get('browsers', 20)
+        elif any(word in assumption_key for word in ['mobile', 'desktop', 'tablet', 'phone']):
+            return type_weights.get('devices', 20)
+        elif any(word in assumption_key for word in ['ios', 'android', 'windows', 'mac', 'linux']):
+            return type_weights.get('operating_systems', 18)
+        elif any(word in assumption_key for word in ['network', 'wifi', 'cellular', 'broadband']):
+            return type_weights.get('network', 16)
+        elif any(word in assumption_key for word in ['database', 'mysql', 'postgresql', 'mongodb']):
+            return type_weights.get('databases', 24)
+        elif any(word in assumption_key for word in ['api', 'endpoint', 'rest', 'graphql']):
+            return type_weights.get('apis', 20)
+
+        return 15  # Default weight for unspecified assumption types

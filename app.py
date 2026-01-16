@@ -1,9 +1,9 @@
 """
-AI Requirements Ambiguity + Assumptions Detector API
+Intelligent Test Case Quality Analyzer API
 
-FastAPI application providing requirement quality analysis.
-Analyzes natural language requirements and test cases to detect
-ambiguity and hidden assumptions before test automation.
+FastAPI application providing test case quality analysis.
+Analyzes test cases and requirements to detect ambiguity
+and hidden assumptions before test automation.
 """
 
 # Workaround for pydantic v1 compatibility with Python 3.11+
@@ -19,7 +19,7 @@ if hasattr(typing, 'ForwardRef'):
     typing.ForwardRef._evaluate = patched_evaluate
 
 import logging
-from typing import Dict, Any
+from typing import Dict, Any,List
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -38,8 +38,8 @@ logger = logging.getLogger(__name__)
 
 # Initialize FastAPI app
 app = FastAPI(
-    title="AI Requirements Quality Analyzer",
-    description="Detects ambiguity and hidden assumptions in requirements and test cases",
+    title="Intelligent Test Case Quality Analyzer",
+    description="Detects ambiguity and hidden assumptions in test cases and requirements",
     version="1.0.0",
     docs_url="/docs",
     redoc_url="/redoc"
@@ -61,55 +61,55 @@ text_preprocessor = TextPreprocessor()
 
 
 class AnalyzeRequest(BaseModel):
-    """Request model for text analysis."""
+    """Request model for test case analysis."""
     text: str = Field(
         ...,
         min_length=1,
         max_length=10000,
-        description="The requirement or test case text to analyze",
-        example="The system should load fast and handle errors properly"
+        description="The test case or requirement text to analyze",
+        example="User logs in with valid credentials and accesses dashboard"
     )
 
+
+class ComponentScore(BaseModel):
+    """Component score with breakdown."""
+    score: float = Field(ge=0, le=100, description="Component score")
+    components: dict = Field(description="Sub-component scores")
+
+class AmbiguityAnalysis(BaseModel):
+    """Multi-signal ambiguity analysis."""
+    score: float = Field(ge=0, le=100, description="Overall ambiguity score")
+    confidence: str = Field(description="Analysis confidence: HIGH/MEDIUM/LOW")
+    components: dict = Field(description="Component scores: lexical, testability, references")
+
+class AssumptionAnalysis(BaseModel):
+    """Multi-signal assumption analysis."""
+    score: float = Field(ge=0, le=100, description="Overall assumption score")
+    components: dict = Field(description="Component breakdown with strength classification")
+
+class ImpactIssue(BaseModel):
+    """Issue with impact explanation."""
+    type: str = Field(description="Issue type: Ambiguity or Assumption")
+    message: str = Field(description="Human-readable issue description")
+    impact: str = Field(description="Why this matters for testing/automation")
+    category: str = Field(default=None, description="Assumption category")
+    assumption: str = Field(default=None, description="Specific assumption text")
 
 class AnalyzeResponse(BaseModel):
-    """Response model for analysis results."""
-    ambiguity_score: float = Field(
-        ...,
-        ge=0,
-        le=100,
-        description="Score indicating how ambiguous the text is (0-100)"
-    )
-    assumption_score: float = Field(
-        ...,
-        ge=0,
-        le=100,
-        description="Score indicating hidden assumptions (0-100)"
-    )
-    readiness_score: float = Field(
-        ...,
-        ge=0,
-        le=100,
-        description="Overall readiness score for automation (0-100)"
-    )
-    readiness_level: str = Field(
-        ...,
-        description="Readiness classification: Ready, Needs clarification, High risk for automation"
-    )
-    issues: list = Field(
-        ...,
-        description="List of detected ambiguity and assumption issues"
-    )
-    suggestions: list = Field(
-        ...,
-        description="List of clarifying questions to improve the requirement"
-    )
+    """Enhanced response model with multi-signal analysis."""
+    ambiguity: AmbiguityAnalysis = Field(description="Multi-signal ambiguity analysis")
+    assumptions: AssumptionAnalysis = Field(description="Multi-signal assumption analysis")
+    readiness_score: float = Field(ge=0, le=100, description="Overall readiness score")
+    readiness_level: str = Field(description="Readiness classification")
+    issues: List[ImpactIssue] = Field(description="Issues with impact explanations")
+    clarifying_questions: List[str] = Field(description="Questions to improve testability")
 
 
 @app.get("/")
 async def root():
     """Root endpoint with API information."""
     return {
-        "message": "AI Requirements Quality Analyzer API",
+        "message": "Intelligent Test Case Quality Analyzer API",
         "version": "1.0.0",
         "docs": "/docs",
         "health": "/health"
@@ -131,12 +131,12 @@ async def health_check():
 
 
 @app.post("/analyze", response_model=AnalyzeResponse)
-async def analyze_requirement(request: AnalyzeRequest):
+async def analyze_test_case(request: AnalyzeRequest):
     """
-    Analyze requirement or test case text for ambiguity and assumptions.
+    Analyze test case or requirement text for ambiguity and assumptions.
 
     This endpoint performs comprehensive analysis to detect:
-    - Ambiguous terms and phrases
+    - Ambiguous terms and phrases in test cases
     - Hidden assumptions about environment, data, and state
     - Overall readiness for test automation
     """
@@ -151,13 +151,14 @@ async def analyze_requirement(request: AnalyzeRequest):
         # Perform analysis
         analysis_result = scorer.analyze_text(text)
 
-        # Generate suggestions
-        suggestions = suggestion_generator.generate_suggestions(
-            analysis_result.get("issues", [])
+        # Generate clarifying questions (always provide for comprehensive coverage)
+        clarifying_questions = scorer._generate_clarifying_questions(
+            analysis_result.get("issues", []),
+            text
         )
 
-        # Add suggestions to response
-        analysis_result["suggestions"] = suggestions
+        # Add clarifying questions to result
+        analysis_result["clarifying_questions"] = clarifying_questions
 
         logger.info(f"Analysis complete - Readiness: {analysis_result.get('readiness_level')}")
 
@@ -197,11 +198,13 @@ async def analyze_detailed(request: AnalyzeRequest):
             "entities": preprocessing["entities"]
         }
 
-        # Generate suggestions
-        suggestions = suggestion_generator.generate_suggestions(
-            analysis_result.get("issues", [])
+        # Generate clarifying questions (always provide for comprehensive coverage)
+        clarifying_questions = suggestion_generator.generate_suggestions(
+            analysis_result.get("issues", []),
+            text,
+            always_ask=True
         )
-        analysis_result["suggestions"] = suggestions
+        analysis_result["clarifying_questions"] = clarifying_questions
 
         return analysis_result
 
@@ -236,10 +239,11 @@ async def analyze_batch(request: Dict[str, Any]):
 
             try:
                 analysis = scorer.analyze_text(text.strip())
-                suggestions = suggestion_generator.generate_suggestions(
-                    analysis.get("issues", [])
+                clarifying_questions = scorer._generate_clarifying_questions(
+                    analysis.get("issues", []),
+                    text.strip()
                 )
-                analysis["suggestions"] = suggestions
+                analysis["clarifying_questions"] = clarifying_questions
                 results.append(analysis)
             except Exception as e:
                 results.append({"error": f"Analysis failed: {str(e)}"})

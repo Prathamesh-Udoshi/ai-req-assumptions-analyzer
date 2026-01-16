@@ -1,100 +1,174 @@
 {
   "subjective_terms": {
     "performance": [
-      "fast", "slow", "quick", "rapid", "instant", "immediate",
-      "speedy", "swift", "brisk", "sluggish", "laggy", "smooth"
+      "fast", "slow", "quick", "rapid", "instant", "immediate", "speedy", "swift", "brisk", 
+      "sluggish", "laggy", "smooth", "responsive", "snappy", "nimble", "agile", "zippy",
+      "crawling", "glacial", "lethargic", "tardy", "delayed", "unresponsive", "clunky",
+      "fluid", "seamless", "effortless", "lightning", "blazing", "superfast", "ultrafast"
     ],
     "quality": [
-      "good", "bad", "better", "best", "worse", "worst",
-      "excellent", "poor", "superior", "inferior", "great", "terrible"
+      "good", "bad", "better", "best", "worse", "worst", "excellent", "poor", "superior", 
+      "inferior", "great", "terrible", "superb", "awful", "outstanding", "mediocre", 
+      "exceptional", "subpar", "premium", "low-quality", "high-quality", "top-notch",
+      "first-rate", "second-rate", "world-class", "substandard", "impressive", "dismal",
+      "stellar", "pathetic", "magnificent", "shoddy", "splendid", "lousy"
     ],
     "usability": [
-      "easy", "hard", "simple", "complex", "intuitive", "confusing",
-      "user-friendly", "difficult", "straightforward", "complicated"
+      "easy", "hard", "simple", "complex", "intuitive", "confusing", "user-friendly", 
+      "difficult", "straightforward", "complicated", "accessible", "inaccessible",
+      "ergonomic", "awkward", "natural", "unnatural", "obvious", "non-obvious",
+      "self-explanatory", "puzzling", "clear", "unclear", "transparent", "opaque",
+      "learnable", "steep", "gentle", "frustrating", "pleasing", "annoying"
     ],
     "reliability": [
-      "reliable", "unreliable", "robust", "fragile", "stable", "unstable",
-      "consistent", "inconsistent", "dependable", "flaky"
+      "reliable", "unreliable", "robust", "fragile", "stable", "unstable", "consistent", 
+      "inconsistent", "dependable", "flaky", "trustworthy", "untrustworthy", "solid",
+      "breakable", "steady", "erratic", "predictable", "unpredictable", "bulletproof",
+      "vulnerable", "resilient", "brittle", "fault-tolerant", "failure-prone"
     ],
     "security": [
-      "secure", "insecure", "safe", "unsafe", "protected", "vulnerable",
-      "trustworthy", "risky", "encrypted", "exposed"
+      "secure", "insecure", "safe", "unsafe", "protected", "vulnerable", "trustworthy", 
+      "risky", "encrypted", "exposed", "guarded", "defenseless", "fortified", "weak",
+      "tamper-proof", "hackable", "authenticated", "unauthenticated", "authorized",
+      "unauthorized", "validated", "unvalidated", "sanitized", "contaminated"
     ],
     "scalability": [
-      "scalable", "non-scalable", "flexible", "rigid", "adaptable", "inflexible",
-      "extensible", "limited", "expandable", "constrained"
+      "scalable", "non-scalable", "flexible", "rigid", "adaptable", "inflexible", 
+      "extensible", "limited", "expandable", "constrained", "elastic", "static",
+      "dynamic", "fixed", "modular", "monolithic", "distributed", "centralized",
+      "cloud-ready", "on-premise", "horizontal", "vertical", "auto-scaling", "manual"
     ],
     "efficiency": [
       "efficient", "inefficient", "optimal", "suboptimal", "effective", "ineffective",
-      "productive", "wasteful", "streamlined", "cumbersome"
+      "productive", "wasteful", "streamlined", "cumbersome", "lean", "bloated",
+      "concise", "verbose", "succinct", "redundant", "economical", "extravagant",
+      "frugal", "lavish", "thrifty", "wasteful", "resourceful", "profligate"
+    ],
+    "accuracy": [
+      "accurate", "inaccurate", "precise", "imprecise", "exact", "inexact", "correct",
+      "incorrect", "right", "wrong", "valid", "invalid", "true", "false", "factual",
+      "erroneous", "authentic", "fake", "genuine", "counterfeit", "legitimate", "bogus"
+    ],
+    "compatibility": [
+      "compatible", "incompatible", "interoperable", "non-interoperable", "universal",
+      "proprietary", "standard", "custom", "open", "closed", "cross-platform",
+      "platform-specific", "vendor-neutral", "vendor-locked", "agnostic", "dependent"
+    ],
+    "maintainability": [
+      "maintainable", "unmaintainable", "modular", "monolithic", "clean", "messy",
+      "readable", "unreadable", "organized", "disorganized", "structured", "chaotic",
+      "documented", "undocumented", "testable", "untestable", "debuggable", "opaque"
     ]
   },
   "weak_modality": {
     "possibility": [
-      "may", "might", "could", "can", "possibly", "potentially"
+      "may", "might", "could", "can", "possibly", "potentially", "feasible", "viable",
+      "practicable", "achievable", "attainable", "realizable", "doable", "workable"
     ],
     "preference": [
-      "should", "preferably", "ideally", "ideally", "would like"
+      "should", "preferably", "ideally", "would like", "would prefer", "ideally would",
+      "preferably would", "it would be nice", "it would be better", "ideally should"
     ],
     "conditionality": [
-      "if possible", "when possible", "as needed", "when necessary",
-      "depending on", "in case of", "provided that"
+      "if possible", "when possible", "as needed", "when necessary", "depending on",
+      "in case of", "provided that", "assuming that", "given that", "in the event that",
+      "should the need arise", "when required", "if required", "as appropriate",
+      "when applicable", "where applicable", "if applicable"
     ],
     "frequency": [
-      "sometimes", "occasionally", "generally", "usually", "typically",
-      "normally", "often", "rarely", "frequently"
+      "sometimes", "occasionally", "generally", "usually", "typically", "normally",
+      "often", "rarely", "frequently", "sporadically", "intermittently", "periodically",
+      "regularly", "irregularly", "consistently", "inconsistently", "always", "never"
     ],
     "probability": [
-      "probably", "likely", "unlikely", "presumably", "apparently"
+      "probably", "likely", "unlikely", "presumably", "apparently", "seemingly",
+      "ostensibly", "allegedly", "supposedly", "reportedly", "purportedly", "claimed"
+    ],
+    "tentativeness": [
+      "perhaps", "maybe", "possibly", "conceivably", "arguably", "potentially",
+      "theoretically", "hypothetically", "speculatively", "tentatively", "provisionally"
     ]
   },
   "undefined_references": {
     "pronouns": [
-      "it", "this", "that", "these", "those", "them", "they"
+      "it", "this", "that", "these", "those", "them", "they", "their", "theirs",
+      "itself", "themselves", "one", "ones", "such", "same", "other", "others",
+      "another", "each", "every", "all", "some", "any", "none", "both", "either"
     ],
     "system_references": [
-      "the system", "the application", "the software", "the platform",
-      "the component", "the module", "the service", "the interface"
+      "the system", "the application", "the software", "the platform", "the service",
+      "the component", "the module", "the interface", "the api", "the database",
+      "the server", "the client", "the backend", "the frontend", "the middleware",
+      "the framework", "the library", "the tool", "the utility", "the engine"
     ],
     "user_references": [
-      "the user", "the customer", "the client", "the admin",
-      "the manager", "the operator", "the visitor"
+      "the user", "the customer", "the client", "the admin", "the manager",
+      "the operator", "the visitor", "the guest", "the member", "the subscriber",
+      "the account holder", "the profile owner", "the session user", "the logged user",
+      "the authenticated user", "the anonymous user", "the registered user"
     ],
     "data_references": [
-      "the data", "the information", "the content", "the record",
-      "the entry", "the item", "the object", "the element"
+      "the data", "the information", "the content", "the record", "the entry",
+      "the item", "the object", "the element", "the field", "the value", "the input",
+      "the output", "the result", "the response", "the message", "the notification",
+      "the alert", "the log", "the report", "the document", "the file", "the attachment"
+    ],
+    "business_references": [
+      "the business", "the company", "the organization", "the enterprise", "the vendor",
+      "the provider", "the supplier", "the partner", "the stakeholder", "the department",
+      "the team", "the project", "the initiative", "the feature", "the product"
     ]
   },
   "non_testable_patterns": [
-    "handle.*properly",
-    "work.*correctly",
-    "function.*properly",
-    "behave.*correctly",
-    "perform.*properly",
-    "process.*correctly",
-    "respond.*appropriately",
-    "act.*properly",
-    "operate.*correctly",
-    "run.*smoothly",
-    "integrate.*seamlessly",
-    "communicate.*effectively",
-    "interact.*properly",
-    "execute.*successfully",
-    "complete.*successfully"
+    "handle.*properly", "work.*correctly", "function.*properly", "behave.*correctly",
+    "perform.*properly", "process.*correctly", "respond.*appropriately", "act.*properly",
+    "operate.*correctly", "run.*smoothly", "integrate.*seamlessly", "communicate.*effectively",
+    "interact.*properly", "execute.*successfully", "complete.*successfully", "finish.*properly",
+    "load.*correctly", "display.*properly", "render.*correctly", "validate.*properly",
+    "process.*appropriately", "handle.*gracefully", "manage.*effectively", "control.*properly",
+    "maintain.*correctly", "support.*adequately", "provide.*sufficiently", "ensure.*properly",
+    "verify.*correctly", "check.*appropriately", "confirm.*properly", "validate.*accurately",
+    "authenticate.*securely", "authorize.*correctly", "encrypt.*properly", "decrypt.*correctly",
+    "serialize.*properly", "deserialize.*correctly", "parse.*accurately", "format.*correctly",
+    "calculate.*accurately", "compute.*correctly", "determine.*properly", "resolve.*correctly",
+    "retrieve.*successfully", "store.*securely", "save.*correctly", "load.*properly"
   ],
   "quantifiable_terms": {
     "time": [
-      "second", "minute", "hour", "day", "week", "month",
-      "millisecond", "microsecond", "nanosecond"
+      "second", "minute", "hour", "day", "week", "month", "year", "millisecond",
+      "microsecond", "nanosecond", "picosecond", "femtosecond", "decisecond",
+      "centisecond", "decasecond", "hectosecond", "kilosecond", "megasecond"
     ],
     "percentage": [
-      "percent", "percentage", "%"
+      "percent", "percentage", "%", "pct", "ratio", "proportion", "fraction",
+      "rate", "frequency", "probability", "likelihood", "chance", "odds"
     ],
     "count": [
-      "times", "instances", "occurrences", "attempts"
+      "times", "instances", "occurrences", "attempts", "tries", "repetitions",
+      "iterations", "cycles", "rounds", "passes", "runs", "executions", "calls"
     ],
     "size": [
-      "bytes", "KB", "MB", "GB", "TB", "pixels", "characters"
+      "bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB", "pixels", "characters",
+      "lines", "pages", "files", "records", "entries", "items", "elements", "nodes",
+      "vertices", "edges", "connections", "links", "relationships", "associations"
+    ],
+    "measurement": [
+      "width", "height", "depth", "length", "area", "volume", "weight", "mass",
+      "speed", "velocity", "acceleration", "distance", "range", "scope", "scale",
+      "magnitude", "intensity", "strength", "power", "capacity", "throughput"
     ]
-  }
+  },
+  "comparison_terms": [
+    "more", "less", "greater", "smaller", "larger", "bigger", "higher", "lower",
+    "faster", "slower", "better", "worse", "easier", "harder", "stronger", "weaker",
+    "longer", "shorter", "deeper", "shallower", "broader", "narrower", "thicker", "thinner",
+    "heavier", "lighter", "darker", "lighter", "brighter", "dimmer", "louder", "quieter",
+    "hotter", "colder", "newer", "older", "younger", "older", "richer", "poorer"
+  ],
+  "temporal_terms": [
+    "immediately", "instantly", "promptly", "quickly", "slowly", "gradually",
+    "suddenly", "eventually", "finally", "ultimately", "initially", "originally",
+    "previously", "subsequently", "consequently", "accordingly", "simultaneously",
+    "concurrently", "sequentially", "successively", "progressively", "incrementally"
+  ]
 }
